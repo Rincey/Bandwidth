@@ -17,3 +17,32 @@ If Z is less than 500 Kbps the connection is considered slow, otherwise it is co
 #>
 
 
+Param (
+    [string]$outputFilename,
+    [string]$destination = "8.8.8.8"
+)
+
+while ($true) {
+
+$count = 0
+$totalTime = 0
+$failureFlag = 0
+while ($count -lt 3) {
+    $time1 = (test-connection -BufferSize 0 -Count 1 -ComputerName $destination -ErrorAction SilentlyContinue).responsetime
+    $time2 = (test-connection -BufferSize 2048 -Count 1 -ComputerName $destination -ErrorAction SilentlyContinue).responsetime
+    if (($time1 -eq 0) -or ($time2 -eq 0)) {$failureFlag = 1}
+    $delta = $time2 - $time1
+    $count ++
+    $totalTime += $delta
+    
+}
+
+if ($failureFlag -eq 0) {
+    $averageDelta = $delta / 3
+    $bandwidth = 32000 / $averageDelta
+}
+else {
+    $bandwidth = 0
+}
+$bandwidth
+}
